@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-ink-950 text-cream-100 font-sans antialiased;
+    /* Warm ambient gradient behind the app */
+    background-image:
+      radial-gradient(1100px 600px at 50% -10%, rgba(242, 115, 26, 0.16), transparent 60%),
+      radial-gradient(900px 500px at 100% 100%, rgba(180, 132, 42, 0.10), transparent 55%);
+    background-attachment: fixed;
+    min-height: 100dvh;
+  }
+
+  /* Respect safe areas on notched phones */
+  #root {
+    min-height: 100dvh;
+  }
+
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+  }
+
+  :lang(mr),
+  .font-deva {
+    font-feature-settings: "kern";
+  }
+
+  /* Consistent, visible focus ring */
+  :focus-visible {
+    @apply outline-none ring-2 ring-gold-400/70 ring-offset-2 ring-offset-ink-950;
+  }
+
+  ::selection {
+    background: rgba(242, 115, 26, 0.35);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Reduce motion for users who ask for it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
