@@ -170,3 +170,9 @@ supabase/
 scripts/
   check-supabase.mjs   Public / RLS smoke test
 ```
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Chatrapati Ganesh Mandal, Wadwani
