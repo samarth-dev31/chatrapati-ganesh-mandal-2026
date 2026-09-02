@@ -1,5 +1,5 @@
 /**
- * Public / RLS smoke test. Run after filling in .env:
+ * Public / RLS smoke test. Run after filling in .env.local (or .env):
  *   node scripts/check-supabase.mjs
  *
  * Verifies, using ONLY the publishable (anon) key:
@@ -16,11 +16,19 @@ import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 function loadEnv() {
+  // Vite loads .env.local on top of .env, so mirror that order here.
   let raw = "";
-  try {
-    raw = readFileSync(new URL("../.env", import.meta.url), "utf8");
-  } catch {
-    console.error("✗ No .env file found. Copy .env.example to .env first.");
+  let found = false;
+  for (const file of ["../.env", "../.env.local"]) {
+    try {
+      raw += "\n" + readFileSync(new URL(file, import.meta.url), "utf8");
+      found = true;
+    } catch {
+      /* file absent — fine */
+    }
+  }
+  if (!found) {
+    console.error("✗ No .env or .env.local file found. Copy .env.example to .env.local first.");
     process.exit(1);
   }
   const env = {};
