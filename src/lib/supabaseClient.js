@@ -1,24 +1,56 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const rawUrl = (import.meta.env.VITE_SUPABASE_URL || "").trim();
+const rawKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "").trim();
 
 /**
- * `true` only when both public env vars are present. Until the Supabase
- * project + migration are ready, the app runs on sample data and this stays
- * `false`, letting the UI degrade gracefully instead of crashing.
+ * A usable Supabase URL must be a full http(s) URL — not empty, not a
+ * placeholder, not a bare `xxx.supabase.co` host. `createClient` throws
+ * synchronously on anything else, so we check first.
  */
-export const isSupabaseConfigured = Boolean(url && key);
+function isValidHttpUrl(value) {
+  if (!value) return false;
+  try {
+    const u = new URL(value);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
-export const supabase = isSupabaseConfigured
-  ? createClient(url, key, {
+let client = null;
+let configured = false;
+
+if (isValidHttpUrl(rawUrl) && rawKey) {
+  try {
+    client = createClient(rawUrl, rawKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
       },
-    })
-  : null;
+    });
+    configured = true;
+  } catch (err) {
+    // Malformed credentials — degrade to the "not connected" state instead of
+    // crashing the whole app at load (which would blank the screen).
+    console.error("Supabase client init failed; running unconfigured.", err);
+  }
+} else if (rawUrl || rawKey) {
+  console.warn(
+    "Supabase env vars are set but invalid — VITE_SUPABASE_URL must be a full " +
+      "https URL (e.g. https://xxxx.supabase.co). Running unconfigured.",
+  );
+}
+
+/**
+ * `true` only when both public env vars are present, valid, and the client
+ * initialised. Until then the app runs read-only/unconnected and the UI shows
+ * a "backend not connected" state instead of a blank screen.
+ */
+export const isSupabaseConfigured = configured;
+
+export const supabase = client;
 
 // The authorised editor account emails. The password-only login screen tries
 // the typed password against each of these via Supabase Auth until one signs
